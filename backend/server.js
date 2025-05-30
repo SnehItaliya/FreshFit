@@ -17,8 +17,9 @@ connectCloudinary()
 //middlewares
 app.use(express.json())
 app.use(cors({
-  origin: process.env.CLIENT_URL
-}));
+    origin: 'https://freshfit-j8c0imq7h-snehitaliyas-projects.vercel.app',
+    credentials: true
+  }));
 
 
 //api end points
