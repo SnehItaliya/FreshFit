@@ -81,6 +81,54 @@ switch(method) {
     }
   break;
 
+  case 'razorpay':
+    const responseRazorpay = await axios.post(backendUrl + '/api/order/razorpay', orderData, {headers:{token}})
+    
+    if (responseRazorpay.data.success) {
+      const {order} = responseRazorpay.data
+      
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID, // You will get this from Razorpay Dashboard
+        amount: order.amount,
+        currency: order.currency,
+        name: 'FreshFit',
+        description: 'Order Payment',
+        order_id: order.id,
+        handler: async function (response) {
+          try {
+            const verifyResponse = await axios.post(backendUrl + '/api/order/verifyRazorpay', {
+              razorpay_order_id: response.razorpay_order_id
+            }, {headers:{token}})
+            
+            if (verifyResponse.data.success) {
+              setCartItems({});
+              navigate('/orders');
+              toast.success('Payment Successful');
+            } else {
+              toast.error('Payment verification failed');
+            }
+          } catch (error) {
+            console.log(error);
+            toast.error('Payment verification failed');
+          }
+        },
+        prefill: {
+          name: `${formdata.firstName} ${formdata.lastName}`,
+          email: formdata.email,
+          contact: formdata.phone
+        },
+        theme: {
+          color: '#3399cc'
+        }
+      };
+      
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } else {
+      toast.error(responseRazorpay.data.message)
+    }
+    break;
+
   default:
     break;
 }
